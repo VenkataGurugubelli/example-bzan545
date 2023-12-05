@@ -1,0 +1,64 @@
+---
+title: "example-bzan345"
+output: html_document
+date: "2023-09-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+
+library(class)
+
+# Setting seed for reproducibility
+set.seed(1)
+
+# Preprocessing the data
+x <- scale(iris[,c(1,2)])
+y <- iris$Species
+n <- nrow(iris)
+k <- 7
+
+# Defining percentages of data to be used for training
+percentages <- seq(from=0.2, to=0.8, by=0.2)
+ntrials <- 20
+accuracies <- matrix(0, nrow=ntrials, ncol=length(percentages))
+
+# Performing KNN classification for each percentage
+for (p in 1:length(percentages)) {
+    ntrain <- as.integer(n*percentages[p])
+    for (ntry in 1:ntrials) {
+        train <- sample(1:n, ntrain)
+        kpred <- knn(train=x[train,], test=x[-train,], cl=y[train], k=k)
+        accuracies[ntry, p] <- sum(y[-train]==kpred)/(n-ntrain)
+    }
+}
+
+mean_accuracies <- colMeans(accuracies)
+
+for (p in 1:length(percentages)) {
+    cat(sprintf("Mean accuracy for %0.0f%% training data: %0.2f%%\n", percentages[p]*100, mean_accuracies[p]*100))
+}
+
+# Visualization using ggplot2 (optional)
+if (require(ggplot2)) {
+    df <- data.frame(Percentage = percentages * 100, Accuracy = mean_accuracies * 100)
+    ggplot(df, aes(x = Percentage, y = Accuracy)) +
+        geom_line(group=1) +
+        geom_point() +
+        labs(title = "KNN Classification Accuracy vs Training Data Percentage", 
+             x = "Percentage of Training Data", 
+             y = "Mean Accuracy (%)") +
+        theme_minimal()
+}
+
+
+```
